@@ -1,0 +1,59 @@
+version: "3.9"
+services:
+  fossbilling:
+    build: ./fossbilling
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - fossbilling:/var/www/html
+    depends_on:
+      - rabbitmq
+
+  mysql:
+    image: mysql:8.2
+    restart: always
+    environment:
+      MYSQL_DATABASE: fossbilling
+      MYSQL_USER: fossbilling
+      MYSQL_PASSWORD: fossbilling
+      MYSQL_RANDOM_ROOT_PASSWORD: '1'
+    volumes:
+      - mysql:/var/lib/mysql
+
+  wordpress:
+    build: ./wordpress  
+    depends_on:
+      - wordpress_db
+    ports:
+      - "9500:80"
+    restart: always
+    environment:
+      WORDPRESS_DB_HOST: wordpress_db:3306
+      WORDPRESS_DB_USER: mouise
+      WORDPRESS_DB_PASSWORD: mouise
+      WORDPRESS_DB_NAME: mouise
+        #    volumes:
+        #- ./wordpress:/var/www/html:rw
+
+  wordpress_db:
+    image: mysql:8.2
+    restart: always
+    environment:
+      MYSQL_DATABASE: mouise
+      MYSQL_USER: mouise
+      MYSQL_PASSWORD: mouise
+      MYSQL_RANDOM_ROOT_PASSWORD: '1'
+    volumes:
+      - wordpress_db:/var/lib/mysql
+      # - ./db-wordpress/clients.sql:/docker-entrypoint-initdb.d/clients.sql:ro
+    
+  rabbitmq:
+    image: "rabbitmq:3-management"
+    ports:
+      - "15672:15672" # RabbitMQ management console
+      - "5672:5672"   # RabbitMQ message broker port 
+volumes:
+  fossbilling:
+  mysql:
+  wordpress_db:
