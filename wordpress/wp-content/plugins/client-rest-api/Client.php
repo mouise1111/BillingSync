@@ -1,13 +1,13 @@
 <?php
 use DateTime;
-
-class Clients {
+// yooo
+class Client {
   private int $id;
   private string $name;
   private string $email;
   private DateTime $created_at; 
 
-  public function __contruct(string $name, string $email, DateTime $created_at = null){
+  public function __construct(string $name, string $email, DateTime $created_at = null){
     $this->name = $name;
     $this->email = $email;
     $this->created_at = $created_at ?? new DateTime();
