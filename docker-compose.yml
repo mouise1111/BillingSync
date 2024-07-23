@@ -7,8 +7,11 @@ services:
       - "80:80"
     volumes:
       - fossbilling:/var/www/html
+#      - ./fossbilling/rabbitmq_consumer.php:/var/www/html/rabbitmq_consumer.php
+#      - ./fossbilling/composer.json:/var/www/html/composer.json
     depends_on:
       - rabbitmq
+      - mysql # EersteZit
 
   mysql:
     image: mysql:8.2
@@ -33,8 +36,8 @@ services:
       WORDPRESS_DB_USER: mouise
       WORDPRESS_DB_PASSWORD: mouise
       WORDPRESS_DB_NAME: mouise
-    volumes:
-      - ./wp-content/plugins:/usr/src/wordpress/wp-content/plugins:rw
+#    volumes:
+#      - ./wordpress/wp-content/plugins:/usr/src/wordpress/wp-content/plugins:rw
 #      - wordpress:/var/www/html:rw
 
   wordpress_db:

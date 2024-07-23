@@ -5,7 +5,7 @@
  * Version: 1.1
  * Author: Mouise Bashir
  */
-
+require_once plugin_dir_path(__FILE__) . 'RabbitMQPublisher.php';
 require_once 'Client.php';
 //require_once plugin_dir_path(__FILE__) . 'Client.php';
 // Hook into the REST API initialization action
@@ -79,7 +79,14 @@ function create_client(WP_REST_Request $request) {
   ]);
 
   $client->setId($wpdb->insert_id);
-
+  // Send client data to RabbitMQ
+  $publisher = new RabbitMQPublisher();
+  $publisher->publish(json_encode([
+    'id' => $client->getId(),
+    'name' => $client->getName(),
+    'email' => $client->getEmail(),
+    'created_at' => $client->getCreatedAt()->format('Y-m-d H:i:s'),
+  ]));
   return new WP_REST_Response($client, 201);
 }
 
