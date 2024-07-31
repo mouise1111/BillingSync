@@ -12,7 +12,7 @@ services:
     depends_on:
       - rabbitmq
       - mysql # EersteZit
-
+        #    command: ["php", "/var/www/html/modules/Customclientsync/listener.php"]
   mysql:
     image: mysql:8.2
     restart: always
