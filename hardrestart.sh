@@ -6,7 +6,7 @@ docker-compose down
 # Remove the specified Docker volumes
 docker volume rm billingsync_fossbilling
 docker volume rm billingsync_mysql
-
+docker system prune -a
 # Build the Docker Compose services
 docker-compose build --no-cache
 
