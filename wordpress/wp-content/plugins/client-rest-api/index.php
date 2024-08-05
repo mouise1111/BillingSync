@@ -5,7 +5,7 @@
  * Version: 1.1
  * Author: Mouise Bashir
  */
-require_once plugin_dir_path(__FILE__) . 'RabbitMQPublisher.php';
+require_once 'RabbitMQPublisher.php';
 require_once 'Client.php';
 //require_once plugin_dir_path(__FILE__) . 'Client.php';
 // Hook into the REST API initialization action

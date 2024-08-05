@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     git \
     unzip \
+    supervisor \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Composer - EersteZit
@@ -15,13 +16,16 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Copy the custom plugin directory to the WordPress plugins directory
 COPY ./wp-content/plugins/client-rest-api /var/www/html/wp-content/plugins/client-rest-api
 COPY ./wp-content/plugins/client-table /var/www/html/wp-content/plugins/client-table
+# Change working directory to the plugin
+#WORKDIR /var/www/html/wp-content/plugins/client-rest-api
 
+# Install Composer dependencies for the plugin
 RUN composer require php-amqplib/php-amqplib # from EersteZit
-RUN composer install
+RUN composer install --working-dir=/var/www/html/wp-content/plugins/client-rest-api/
 
 # Ensure correct permissions
 RUN chown -R www-data:www-data /var/www/html
-
+RUN chmod -R 755 /var/www/html
 # Expose port 80 for the web server
 EXPOSE 80
 

@@ -36,9 +36,6 @@ services:
       WORDPRESS_DB_USER: mouise
       WORDPRESS_DB_PASSWORD: mouise
       WORDPRESS_DB_NAME: mouise
-#    volumes:
-#      - ./wordpress/wp-content/plugins:/usr/src/wordpress/wp-content/plugins:rw
-#      - wordpress:/var/www/html:rw
 
   wordpress_db:
     image: mysql:8.2
@@ -57,6 +54,16 @@ services:
     ports:
       - "15672:15672" # RabbitMQ management console
       - "5672:5672"   # RabbitMQ message broker port 
+
+  queue-consumer:
+    build: ./queue-consumer
+    restart: always
+    depends_on:
+      - rabbitmq
+        #    volumes:
+      #      - ./queue-consumer:/app
+        #    command: ["php", "/app/index.php"]
+
 volumes:
   fossbilling:
   mysql:

@@ -176,10 +176,10 @@ class Admin extends \Api_Abstract
     
     $connection = new AMQPStreamConnection('rabbitmq', 5672, 'guest', 'guest');
     $channel = $connection->channel();
-    $channel->queue_declare('client_queue', false, false, false, false);
+    $channel->queue_declare('fossbilling_to_wordpress_queue', false, false, false, false);
 
     $msg = new AMQPMessage(json_encode($data));
-    $channel->basic_publish($msg, '', 'client_queue');
+    $channel->basic_publish($msg, '', 'fossbilling_to_wordpress_queue');
 
     $channel->close();
     $connection->close();
