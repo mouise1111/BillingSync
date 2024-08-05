@@ -82,6 +82,7 @@ function create_client(WP_REST_Request $request) {
   // Send client data to RabbitMQ
   $publisher = new RabbitMQPublisher();
   $publisher->publish(json_encode([
+    'method' => "create",
     'id' => $client->getId(),
     'name' => $client->getName(),
     'email' => $client->getEmail(),
