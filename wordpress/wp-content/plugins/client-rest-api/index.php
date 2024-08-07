@@ -30,6 +30,10 @@ add_action('rest_api_init', function () {
     'methods' => 'DELETE',
     'callback' => 'delete_client',
   ]);
+  register_rest_route('myplugin/v1', '/clients/', [
+    'methods' => 'DELETE',
+    'callback' => 'delete_client_by_custom_1',
+  ]);
 });
 
 /**
@@ -68,14 +72,15 @@ function create_client(WP_REST_Request $request) {
   $name = sanitize_text_field($data['name']);
   $email = sanitize_email($data['email']);
   $created_at = new DateTime();
-
-  $client = new Client($name, $email, $created_at);
+  $custom_1 = $data['custom_1'] ?? null;
+  $client = new Client($name, $email, $created_at, $custom_1);
 
   $table_name = $wpdb->prefix . 'clients';
   $wpdb->insert($table_name, [
     'name' => $client->getName(),
     'email' => $client->getEmail(),
     'created_at' => $client->getCreatedAt()->format('Y-m-d H:i:s'),
+    'custom_1' => $client->getCustom1(),
   ]);
 
   $client->setId($wpdb->insert_id);
@@ -87,6 +92,7 @@ function create_client(WP_REST_Request $request) {
     'name' => $client->getName(),
     'email' => $client->getEmail(),
     'created_at' => $client->getCreatedAt()->format('Y-m-d H:i:s'),
+    'custom_1' => $client->getCustom1(),
   ]));
   return new WP_REST_Response($client, 201);
 }
@@ -118,24 +124,36 @@ function update_client(WP_REST_Request $request) {
 
   return new WP_REST_Response($client, 200);
 }
-
 /**
- * Delete a client
+ * Delete a client by ID or custom_1
  */
 function delete_client(WP_REST_Request $request) {
   global $wpdb;
   $id = $request['id'];
+  $custom_1 = $request->get_param('custom_1');
 
   $table_name = $wpdb->prefix . 'clients';
-  $client_data = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $id));
+
+  if (!empty($id)) {
+    $client_data = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $id));
+  } else if (!empty($custom_1)) {
+    $client_data = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE custom_1 = %s", $custom_1));
+  } else {
+    return new WP_REST_Response(['message' => 'Client ID or custom_1 is required'], 400);
+  }
 
   if (is_null($client_data)) {
     return new WP_REST_Response(['message' => 'Client not found'], 404);
   }
 
-  $wpdb->delete($table_name, ['id' => $id]);
+  $wpdb->delete($table_name, ['id' => $client_data->id]);
 
   return new WP_REST_Response(['message' => 'Client deleted'], 200);
 }
 
-
+/**
+ * Delete a client by custom_1
+ */
+function delete_client_by_custom_1(WP_REST_Request $request) {
+  return delete_client($request);
+}

@@ -1,19 +1,30 @@
 <?php
 use DateTime;
-// yooo
+
 class Client {
   private int $id;
   private string $name;
   private string $email;
   private DateTime $created_at; 
+  private string $custom_1;
 
-  public function __construct(string $name, string $email, DateTime $created_at = null){
+  public function __construct(string $name, string $email, DateTime $created_at = null, string $custom_1 = null){
     $this->name = $name;
     $this->email = $email;
     $this->created_at = $created_at ?? new DateTime();
+    $this->custom_1 = $custom_1 ?? uniqid('w_'); 
+    // if we are creating a user from Fossbilling, then we get the custom_1 value from the queue, otherwise we will set the value here
+  }
+  
+  public function getCustom1() {
+    return $this->custom_1;
   }
 
-  // Getter method for 'id'
+  public function setCustom1($custom_1) {
+    $this->custom_1 = $custom_1;
+  }
+ 
+ // Getter method for 'id'
   public function getId(): int {
     return $this->id;
   }

@@ -153,13 +153,18 @@ class Admin extends \Api_Abstract
     if ($service->emailAlreadyRegistered($data['email'])) {
       throw new \FOSSBilling\InformationException('This email address is already registered.');
     }
+    
+    // Setting the custom_1 field to be a unique id
+    $data['custom_1'] = uniqid();
 
     $validator->isPasswordStrong($data['password']);
-
+    
     $this->di['events_manager']->fire(['event' => 'onBeforeAdminClientCreate', 'params' => $data]);
     $id = $service->adminCreateClient($data);
     $this->di['events_manager']->fire(['event' => 'onAfterAdminClientCreate', 'params' => $data]);
-
+    
+    // specify what method it is to handle accordingly in consumer container 
+    $data['method'] = 'create';
     // Send client data to RabbitMQ
     $this->sendToRabbitMQ($data);
 
@@ -173,7 +178,6 @@ class Admin extends \Api_Abstract
    */
   private function sendToRabbitMQ($data)
   {
-    
     $connection = new AMQPStreamConnection('rabbitmq', 5672, 'guest', 'guest');
     $channel = $connection->channel();
     $channel->queue_declare('fossbilling_to_wordpress_queue', false, false, false, false);
@@ -198,6 +202,9 @@ class Admin extends \Api_Abstract
         $this->di['validator']->checkRequiredParamsForArray($required, $data);
 
         $model = $this->di['db']->getExistingModelById('Client', $data['id'], 'Client not found');
+        
+        // retrieve custom id from model
+        $custom_1 = $model->custom_1;
 
         $this->di['events_manager']->fire(['event' => 'onBeforeAdminClientDelete', 'params' => ['id' => $model->id]]);
 
@@ -206,6 +213,13 @@ class Admin extends \Api_Abstract
         $this->di['events_manager']->fire(['event' => 'onAfterAdminClientDelete', 'params' => ['id' => $id]]);
 
         $this->di['logger']->info('Removed client #%s', $id);
+
+        // specify what method it is to handle accordingly in consumer container 
+        $data['method'] = 'delete';
+        
+        $data['custom_1'] = $custom_1;
+        // Send client data to RabbitMQ
+        $this->sendToRabbitMQ($data);
 
         return true;
     }
