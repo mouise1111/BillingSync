@@ -1,4 +1,6 @@
 <?php
+//FossBilling API Key
+define('FOSS_PASS', "admin:6qTnJGqni9GdlK5VXoHyn3lnswqevDK5");
 /**
  * FOSSBilling API FUNCTIONS
  **/
@@ -29,7 +31,7 @@ function create_fossbilling_client($data){
   ]);
 
   //basic auth
-  curl_setopt($ch, CURLOPT_USERPWD, "admin:z7FoNPclgEZFNKPd9mcQ7Mj795pYTRKQ"); 
+  curl_setopt($ch, CURLOPT_USERPWD, FOSS_PASS); 
 
   // Execute the POST request
   $response = curl_exec($ch);
@@ -67,7 +69,7 @@ function delete_fossbilling_client($data){
   ]);
 
   //basic auth
-  curl_setopt($ch, CURLOPT_USERPWD, "admin:z7FoNPclgEZFNKPd9mcQ7Mj795pYTRKQ"); 
+  curl_setopt($ch, CURLOPT_USERPWD, FOSS_PASS); 
   // Execute the POST request
   $response = curl_exec($ch);
 
@@ -110,7 +112,7 @@ function update_fossbilling_client($data) {
     ]);
 
     // Set up basic authentication
-    curl_setopt($ch, CURLOPT_USERPWD, "admin:z7FoNPclgEZFNKPd9mcQ7Mj795pYTRKQ");
+    curl_setopt($ch, CURLOPT_USERPWD, FOSS_PASS);
 
     // Execute the PUT request
     $response = curl_exec($ch);
