@@ -23,6 +23,7 @@ function create_custom_db_table() {
         name tinytext NOT NULL,
         email varchar(100) NOT NULL UNIQUE,
         created_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+        birthday datetime NOT NULL,
         custom_1 VARCHAR(255) UNIQUE,
         PRIMARY KEY  (id)
     ) $charset_collate;";

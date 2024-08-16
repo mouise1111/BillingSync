@@ -17,7 +17,7 @@ namespace Box\Mod\Client\Api;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
 
-require_once __DIR__ . '/../../../src/vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
 class Admin extends \Api_Abstract
 {
@@ -143,31 +143,37 @@ class Admin extends \Api_Abstract
     $required = [
       'email' => 'Email required',
       'first_name' => 'First name is required',
+      'birthday' => 'Birthday is required',
     ];
     $this->di['validator']->checkRequiredParamsForArray($required, $data);
 
     $validator = $this->di['validator'];
     $data['email'] = $this->di['tools']->validateAndSanitizeEmail($data['email']);
 
+    // Validate birthday if provided
+    if (!empty($data['birthday'])) {
+      $this->di['validator']->isBirthdayValid($data['birthday']);
+    }
+
     $service = $this->getService();
     if ($service->emailAlreadyRegistered($data['email'])) {
       throw new \FOSSBilling\InformationException('This email address is already registered.');
     }
-    
-    // Setting the custom_1 field to be a unique id
-    $data['custom_1'] = uniqid();
 
+    // Setting the custom_1 field to be a unique id if it's set already. Because incoming client from wordpress will already have a custom_1 field
+    if (!isset($data['custom_1'])) {
+      $data['custom_1'] = uniqid('f_');
+      // specify what method it is to handle accordingly in consumer container 
+      $data['method'] = 'create';
+      // We only want to send data on the queue if the client is being created from fossbilling. If data is incoming, we do not send data back. 
+      // Otherwise -> infinite loop
+      $this->sendToRabbitMQ($data);
+    }
     $validator->isPasswordStrong($data['password']);
-    
+
     $this->di['events_manager']->fire(['event' => 'onBeforeAdminClientCreate', 'params' => $data]);
     $id = $service->adminCreateClient($data);
     $this->di['events_manager']->fire(['event' => 'onAfterAdminClientCreate', 'params' => $data]);
-    
-    // specify what method it is to handle accordingly in consumer container 
-    $data['method'] = 'create';
-    // Send client data to RabbitMQ
-    $this->sendToRabbitMQ($data);
-
     return $id;
   }
 
@@ -189,40 +195,56 @@ class Admin extends \Api_Abstract
     $connection->close();
   }
 
-    /**
-     * Deletes client from system.
-     *
-     * @return bool
-     */
-    public function delete($data)
-    {
-        $required = [
-            'id' => 'Client id is missing',
-        ];
-        $this->di['validator']->checkRequiredParamsForArray($required, $data);
+  /**
+   * Deletes client from the system.
+   *
+   * @return bool
+   */
+  public function delete($data)
+  {
+    $required = [
+      'id' => 'Client id is missing',
+    ];
 
-        $model = $this->di['db']->getExistingModelById('Client', $data['id'], 'Client not found');
-        
-        // retrieve custom id from model
-        $custom_1 = $model->custom_1;
-
-        $this->di['events_manager']->fire(['event' => 'onBeforeAdminClientDelete', 'params' => ['id' => $model->id]]);
-
-        $id = $model->id;
-        $this->getService()->remove($model);
-        $this->di['events_manager']->fire(['event' => 'onAfterAdminClientDelete', 'params' => ['id' => $id]]);
-
-        $this->di['logger']->info('Removed client #%s', $id);
-
-        // specify what method it is to handle accordingly in consumer container 
-        $data['method'] = 'delete';
-        
-        $data['custom_1'] = $custom_1;
-        // Send client data to RabbitMQ
-        $this->sendToRabbitMQ($data);
-
-        return true;
+    // If custom_1 is provided, don't require id
+    if (isset($data['custom_1'])) {
+      unset($required['id']);
     }
+
+    $this->di['validator']->checkRequiredParamsForArray($required, $data);
+
+    // Find the client by id or custom_1
+    if (isset($data['id'])) {
+      $model = $this->di['db']->getExistingModelById('Client', $data['id'], 'Client not found');
+    } elseif (isset($data['custom_1'])) {
+      $model = $this->di['db']->findOne('Client', 'custom_1 = ?', [$data['custom_1']]);
+      if (!$model) {
+        throw new \FOSSBilling\Exception\NotFound('Client not found');
+      }
+    } else {
+      throw new \FOSSBilling\Exception\Error('Either id or custom_1 is required');
+    }
+
+    // Retrieve custom id from model
+    $custom_1 = $model->custom_1;
+
+    $this->di['events_manager']->fire(['event' => 'onBeforeAdminClientDelete', 'params' => ['id' => $model->id]]);
+
+    $id = $model->id;
+    $this->getService()->remove($model);
+    $this->di['events_manager']->fire(['event' => 'onAfterAdminClientDelete', 'params' => ['id' => $id]]);
+
+    $this->di['logger']->info('Removed client #%s', $id);
+
+    // Specify what method it is to handle accordingly in the consumer container
+    $data['method'] = 'delete';
+    $data['custom_1'] = $custom_1;
+
+    // Send client data to RabbitMQ
+    $this->sendToRabbitMQ($data);
+
+    return true;
+  }
 
     /**
      * Update client profile.
@@ -264,87 +286,121 @@ class Admin extends \Api_Abstract
      *
      * @return bool
      */
-    public function update($data = [])
-    {
-        $required = ['id' => 'Id required'];
-        $this->di['validator']->checkRequiredParamsForArray($required, $data);
+  public function update($data = [])
+  {
+    // Determine required parameters
 
-        $client = $this->di['db']->getExistingModelById('Client', $data['id'], 'Client not found');
-
-        $service = $this->di['mod_service']('client');
-
-        if (!is_null($data['email'] ?? null)) {
-            $email = $data['email'];
-            $email = $this->di['tools']->validateAndSanitizeEmail($email);
-            if ($service->emailAlreadyRegistered($email, $client)) {
-                throw new \FOSSBilling\InformationException('This email address is already registered.');
-            }
-        }
-
-        if (!empty($data['birthday'])) {
-            $this->di['validator']->isBirthdayValid($data['birthday']);
-        }
-
-        if (($data['currency'] ?? null) && $service->canChangeCurrency($client, $data['currency'] ?? null)) {
-            $client->currency = $data['currency'] ?? $client->currency;
-        }
-
-        $this->di['events_manager']->fire(['event' => 'onBeforeAdminClientUpdate', 'params' => $data]);
-
-        $phoneCC = $data['phone_cc'] ?? $client->phone_cc;
-        if (!empty($phoneCC)) {
-            $client->phone_cc = intval($phoneCC);
-        }
-
-        $client->email = (!empty($data['email']) ? $data['email'] : $client->email);
-        $client->first_name = (!empty($data['first_name']) ? $data['first_name'] : $client->first_name);
-        $client->last_name = (!empty($data['last_name']) ? $data['last_name'] : $client->last_name);
-        $client->aid = (!empty($data['aid']) ? $data['aid'] : $client->aid);
-        $client->gender = (!empty($data['gender']) ? $data['gender'] : $client->gender);
-        $client->birthday = (!empty($data['birthday']) ? $data['birthday'] : $client->birthday);
-        $client->company = (!empty($data['company']) ? $data['company'] : $client->company);
-        $client->company_vat = (!empty($data['company_vat']) ? $data['company_vat'] : $client->company_vat);
-        $client->address_1 = (!empty($data['address_1']) ? $data['address_1'] : $client->address_1);
-        $client->address_2 = (!empty($data['address_2']) ? $data['address_2'] : $client->address_2);
-        $client->phone = (!empty($data['phone']) ? $data['phone'] : $client->phone);
-        $client->document_type = (!empty($data['document_type']) ? $data['document_type'] : $client->document_type);
-        $client->document_nr = (!empty($data['document_nr']) ? $data['document_nr'] : $client->document_nr);
-        $client->notes = (!empty($data['notes']) ? $data['notes'] : $client->notes);
-        $client->country = (!empty($data['country']) ? $data['country'] : $client->country);
-        $client->postcode = (!empty($data['postcode']) ? $data['postcode'] : $client->postcode);
-        $client->state = (!empty($data['state']) ? $data['state'] : $client->state);
-        $client->city = (!empty($data['city']) ? $data['city'] : $client->city);
-
-        $client->status = (!empty($data['status']) ? $data['status'] : $client->status);
-        $client->email_approved = (!empty($data['email_approved']) ? $data['email_approved'] : $client->email_approved);
-        $client->tax_exempt = (!empty($data['tax_exempt']) ? $data['tax_exempt'] : $client->tax_exempt);
-        $client->created_at = (!empty($data['created_at']) ? $data['created_at'] : $client->created_at);
-
-        $client->custom_1 = (!empty($data['custom_1']) ? $data['custom_1'] : $client->custom_1);
-        $client->custom_2 = (!empty($data['custom_2']) ? $data['custom_2'] : $client->custom_2);
-        $client->custom_3 = (!empty($data['custom_3']) ? $data['custom_3'] : $client->custom_3);
-        $client->custom_4 = (!empty($data['custom_4']) ? $data['custom_4'] : $client->custom_4);
-        $client->custom_5 = (!empty($data['custom_5']) ? $data['custom_5'] : $client->custom_5);
-        $client->custom_6 = (!empty($data['custom_6']) ? $data['custom_6'] : $client->custom_6);
-        $client->custom_7 = (!empty($data['custom_7']) ? $data['custom_7'] : $client->custom_7);
-        $client->custom_8 = (!empty($data['custom_8']) ? $data['custom_8'] : $client->custom_8);
-        $client->custom_9 = (!empty($data['custom_9']) ? $data['custom_9'] : $client->custom_9);
-        $client->custom_10 = (!empty($data['custom_10']) ? $data['custom_10'] : $client->custom_10);
-
-        $client->client_group_id = (!empty($data['group_id']) ? $data['group_id'] : $client->client_group_id);
-        $client->company_number = (!empty($data['company_number']) ? $data['company_number'] : $client->company_number);
-        $client->type = (!empty($data['type']) ? $data['type'] : $client->type);
-        $client->lang = (!empty($data['lang']) ? $data['lang'] : $client->lang);
-
-        $client->updated_at = date('Y-m-d H:i:s');
-
-        $this->di['db']->store($client);
-        $this->di['events_manager']->fire(['event' => 'onAfterAdminClientUpdate', 'params' => ['id' => $client->id]]);
-
-        $this->di['logger']->info('Updated client #%s profile', $client->id);
-
-        return true;
+    if (isset($data['origin']) && $data['origin'] === "wordpress") {
+      $required = [
+        'custom_1' => 'Client custom_1 is missing',
+        'birthday' => 'Birthday is required',
+      ];
+    } else {
+      $required = [
+        'id' => 'Id required',
+        'birthday' => 'Birthday is required',
+      ];
     }
+
+    $this->di['validator']->checkRequiredParamsForArray($required, $data);
+
+    // Find the client by id or custom_1
+    if (!isset($data['origin']) || $data['origin'] !== "wordpress") {
+      $client = $this->di['db']->getExistingModelById('Client', $data['id'], 'Client not found');
+    } elseif (isset($data['origin']) && $data['origin'] === "wordpress") {
+      $client = $this->di['db']->findOne('Client', 'custom_1 = ?', [$data['custom_1']]);
+      if (!$client) {
+        throw new \FOSSBilling\Exception\NotFound('Client not found');
+      }
+    } else {
+      throw new \FOSSBilling\Exception\Error('Either id or custom_1 is required');
+    }
+
+    $service = $this->di['mod_service']('client');
+
+    // Validate and update the email
+    if (!is_null($data['email'] ?? null)) {
+      $email = $data['email'];
+      $email = $this->di['tools']->validateAndSanitizeEmail($email);
+      if ($service->emailAlreadyRegistered($email, $client)) {
+        throw new \FOSSBilling\InformationException('This email address is already registered.');
+      }
+    }
+
+    // Validate birthday if provided
+    if (!empty($data['birthday'])) {
+      $this->di['validator']->isBirthdayValid($data['birthday']);
+    }
+
+    // Handle currency change if applicable
+    if (($data['currency'] ?? null) && $service->canChangeCurrency($client, $data['currency'] ?? null)) {
+      $client->currency = $data['currency'] ?? $client->currency;
+    }
+
+    $this->di['events_manager']->fire(['event' => 'onBeforeAdminClientUpdate', 'params' => $data]);
+
+    // Update fields
+    $phoneCC = $data['phone_cc'] ?? $client->phone_cc;
+    if (!empty($phoneCC)) {
+      $client->phone_cc = intval($phoneCC);
+    }
+
+    $client->email = $data['email'] ?? $client->email;
+    $client->first_name = $data['first_name'] ?? $client->first_name;
+    $client->last_name = $data['last_name'] ?? $client->last_name;
+    $client->aid = $data['aid'] ?? $client->aid;
+    $client->gender = $data['gender'] ?? $client->gender;
+    $client->birthday = $data['birthday'] ?? $client->birthday;
+    $client->company = $data['company'] ?? $client->company;
+    $client->company_vat = $data['company_vat'] ?? $client->company_vat;
+    $client->address_1 = $data['address_1'] ?? $client->address_1;
+    $client->address_2 = $data['address_2'] ?? $client->address_2;
+    $client->phone = $data['phone'] ?? $client->phone;
+    $client->document_type = $data['document_type'] ?? $client->document_type;
+    $client->document_nr = $data['document_nr'] ?? $client->document_nr;
+    $client->notes = $data['notes'] ?? $client->notes;
+    $client->country = $data['country'] ?? $client->country;
+    $client->postcode = $data['postcode'] ?? $client->postcode;
+    $client->state = $data['state'] ?? $client->state;
+    $client->city = $data['city'] ?? $client->city;
+
+    $client->status = $data['status'] ?? $client->status;
+    $client->email_approved = $data['email_approved'] ?? $client->email_approved;
+    $client->tax_exempt = $data['tax_exempt'] ?? $client->tax_exempt;
+    $client->created_at = $data['created_at'] ?? $client->created_at;
+
+    $client->custom_1 = $data['custom_1'] ?? $client->custom_1;
+    $client->custom_2 = $data['custom_2'] ?? $client->custom_2;
+    $client->custom_3 = $data['custom_3'] ?? $client->custom_3;
+    $client->custom_4 = $data['custom_4'] ?? $client->custom_4;
+    $client->custom_5 = $data['custom_5'] ?? $client->custom_5;
+    $client->custom_6 = $data['custom_6'] ?? $client->custom_6;
+    $client->custom_7 = $data['custom_7'] ?? $client->custom_7;
+    $client->custom_8 = $data['custom_8'] ?? $client->custom_8;
+    $client->custom_9 = $data['custom_9'] ?? $client->custom_9;
+    $client->custom_10 = $data['custom_10'] ?? $client->custom_10;
+
+    //$client->client_group_id = $data['group_id'] ?? $client->client_group_id;
+    $client->company_number = $data['company_number'] ?? $client->company_number;
+    $client->type = $data['type'] ?? $client->type;
+    $client->lang = $data['lang'] ?? $client->lang;
+
+    $client->updated_at = date('Y-m-d H:i:s');
+
+    $this->di['db']->store($client);
+    $this->di['events_manager']->fire(['event' => 'onAfterAdminClientUpdate', 'params' => ['id' => $client->id]]);
+
+    $this->di['logger']->info('Updated client #%s profile', $client->id);
+
+    // If the origin is not "wordpress", send the data to RabbitMQ
+    if (!isset($data['origin']) || $data['origin'] !== "wordpress") {
+      $data['method'] = 'update';
+      $data['custom_1'] = $client->custom_1;
+      $this->sendToRabbitMQ($data);
+    }
+
+    return true;
+  }
 
     /**
      * Change client password.

@@ -16,6 +16,8 @@ services:
   mysql:
     image: mysql:8.2
     restart: always
+    ports:
+      - "3306:3306"
     environment:
       MYSQL_DATABASE: fossbilling
       MYSQL_USER: fossbilling

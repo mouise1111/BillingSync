@@ -7,15 +7,24 @@ class Client {
   private string $email;
   private DateTime $created_at; 
   private string $custom_1;
+  private string $birthday;
 
-  public function __construct(string $name, string $email, DateTime $created_at = null, string $custom_1 = null){
+  public function __construct(string $name, string $email, DateTime $created_at = null, string $custom_1 = null, string $birthday){
     $this->name = $name;
     $this->email = $email;
     $this->created_at = $created_at ?? new DateTime();
     $this->custom_1 = $custom_1 ?? uniqid('w_'); 
     // if we are creating a user from Fossbilling, then we get the custom_1 value from the queue, otherwise we will set the value here
+    $this->birthday = $birthday;
   }
   
+  public function getDateOfBirth(): string {
+    return $this->birthday;
+  } 
+  
+  public function setDateOfBirth(): void {
+    $this->birthday = $birthday;
+  }
   public function getCustom1() {
     return $this->custom_1;
   }

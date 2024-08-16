@@ -1,4 +1,5 @@
 <?php
+
 /**
  * FOSSBilling configuration file example.
  *
@@ -11,51 +12,51 @@
  */
 
 return [
-	/* 
-	 * These configuration options allow you to configure the security options inside of FOSSBilling.
-	 * The default values are what we recommended running unless they are causing issues.
-	 */
-	'security' => [
-		'mode' => 'regular',
-		'force_https' => false,
-		'session_lifespan' => 7200,
-		'perform_session_fingerprinting' => true,
-		'debug_fingerprint' => false,
-	],
+    /* 
+     * These configuration options allow you to configure the security options inside of FOSSBilling.
+     * The default values are what we recommended running unless they are causing issues.
+     */
+    'security' => [
+        'mode' => 'strict',
+        'force_https' => false,
+        'session_lifespan' => 7200,
+        'perform_session_fingerprinting' => true,
+        'debug_fingerprint' => false,
+    ],
 
-	'debug_and_monitoring' => [
-		/*
-		 * Enable or disable displaying advanced debugging messages.
-		 * You should keep this disabled unless you're making tests as it can reveal some information about your server.
-		 */
-		'debug' => false,
-		/*
-		 * Enable or disable stacktraces when an exception is thrown (also requires debug to be enabled).
-		 */
-		'log_stacktrace' => true,
-		/*
-		 * How long the stacktrace should be.
-		 */
-		'stacktrace_length' => 25,
+    'debug_and_monitoring' => [
+        /*
+         * Enable or disable displaying advanced debugging messages.
+         * You should keep this disabled unless you're making tests as it can reveal some information about your server.
+         */
+        'debug' => false,
+        /*
+         * Enable or disable stacktraces when an exception is thrown (also requires debug to be enabled).
+         */
+        'log_stacktrace' => true,
+        /*
+         * How long the stacktrace should be.
+         */
+        'stacktrace_length' => 25,
 
-		/*
-		 * Enables automated error, stability, and performance reporting.
-		 * Private information is scrubbed from any info before being sent.
-		 * FOSSBilling uses Sentry.io for error reporting which has a full writeup on their security and privacy practices here: https://sentry.io/security/.
-		 * Enabling error reporting will help us proactively identify and fix bugs in FOSSBilling as well as provide better technical support.
-		 */
-		'report_errors' => true,
-	],
+        /*
+         * Enables automated error, stability, and performance reporting.
+         * Private information is scrubbed from any info before being sent.
+         * FOSSBilling uses Sentry.io for error reporting which has a full writeup on their security and privacy practices here: https://sentry.io/security/.
+         * Enabling error reporting will help us proactively identify and fix bugs in FOSSBilling as well as provide better technical support.
+         */
+        'report_errors' => false,
+    ],
 
-	'info' => [
-		'salt' => bin2hex(random_bytes(16)),
-		'instance_id' => 'b69f3355-5448-459e-b563-9d687e29a838', 
+    'info' => [
+        'salt' => bin2hex(random_bytes(16)),
+        'instance_id' => 'XXXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXXX',
     ],
 
     /*
      * Full URL where FOSSBilling is installed with trailing slash.
      */
-    'url' => 'http://http://192.168.122.79/',
+    'url' => 'http://192.168.122.79/',
 
     /*
      * The URL prefix to access the BB admin area. Ex: '/admin' for https://example.com/admin.
@@ -92,7 +93,7 @@ return [
     /*
      * FOSSBilling will automatically execute cron when you login to the admin panel if it hasn't been executed in awhile. You can disable this fallback here.
      */
-    'disable_auto_cron' => false,
+    'disable_auto_cron' => true,
 
     /* 
      * These configuration options allow you to configure the default localisation.
@@ -124,33 +125,28 @@ return [
 
         /*
          * Database hostname. Don't change this if in doubt.
+         'host' => getenv('DB_HOST') ?: '127.0.0.1',
          */
-        // 'host' => getenv('DB_HOST'), 
-        'host' => 'mysql', 
-        // 'mysql'
-
+        'host' => getenv('DB_HOST') ?: 'mysql',
         /*
          * The name of the database for FOSSBilling.
          */
-        // 'name' => getenv('DB_NAME'),
-        'name' => 'fossbilling',
+        'name' => getenv('DB_NAME') ?: 'fossbilling',
 
         /*
          * Database username.
          */
-        // 'user' => getenv('DB_USER'),
-        'user' => 'fossbilling',
+        'user' => getenv('DB_USER') ?: 'fossbilling',
 
         /*
          * Database password.
          */
-        // 'password' => getenv('DB_PASS') ? : 'fossbilling',
-        'password' => 'fossbilling',
+        'password' => getenv('DB_PASS') ?: 'fossbilling',
 
         /*
          * Database Port.
          */
-        'port' => 3306, // getenv('DB_PORT') ? (int)getenv('DB_PORT') : 3306, // Get port from env or default to 3306
+        'port' => getenv('DB_PORT') ?: '3306',
     ],
 
     'twig' => [
