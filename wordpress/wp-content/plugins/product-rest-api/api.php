@@ -88,7 +88,7 @@ function create_product(WP_REST_Request $request) {
 
   $product->setId($wpdb->insert_id);
 
-  if ($data['origin'] !== "fossbilling") {
+  if (!isset($data['origin']) || $data['origin'] !== "fossbilling") {
   // Send product data to RabbitMQ
   $publisher = new RabbitMQPublisher();
   $publisher->publish(json_encode([

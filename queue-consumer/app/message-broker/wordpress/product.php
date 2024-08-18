@@ -18,6 +18,7 @@ function create_wordpress_product($data){
     $payload = json_encode([
       'title' => $data['title'],
       'type' => $data['type'],
+      'origin' => $data['origin']
     ]);
     echo $payload;
     // Initialize cURL session
