@@ -92,6 +92,7 @@ jobs:
       run: docker-compose -f docker-compose.yml down
 
   deploy:
+
     - name: Install SSH client
       run: sudo apt-get install -y openssh-client 
 
