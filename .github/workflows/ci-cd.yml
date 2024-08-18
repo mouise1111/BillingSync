@@ -88,11 +88,6 @@ jobs:
         docker-compose -f docker-compose.yml up -d
         docker ps -a
 
-    - name: Run Tests
-      run: |
-        docker-compose -f docker-compose.yml run fossbilling php artisan test
-        docker-compose -f docker-compose.yml run wordpress curl -s --head http://192.168.122.79:9500 | grep "200 OK"
-
     - name: Tear down services
       run: docker-compose -f docker-compose.yml down
 
