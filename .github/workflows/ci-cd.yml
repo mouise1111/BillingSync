@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     services:
       mysql:
@@ -92,7 +92,7 @@ jobs:
       run: docker-compose -f docker-compose.yml down
 
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: build
     steps:
       - name: Install SSH client
