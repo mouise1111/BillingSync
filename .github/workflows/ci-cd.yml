@@ -84,15 +84,15 @@ jobs:
 
     - name: Build and push Docker images
       run: |
-        docker-compose -f ~/BillingSync/docker-compose.yml build
-        docker-compose -f ~/BillingSync/docker-compose.yml up -d
+        docker-compose -f docker-compose.yml build
+        docker-compose -f docker-compose.yml up -d
         docker ps -a
 
     - name: Run Tests
       run: |
-        docker-compose -f ~/BillingSync/docker-compose.yml run fossbilling php artisan test
-        docker-compose -f ~/BillingSync/docker-compose.yml run wordpress curl -s --head http://192.168.122.79:9500 | grep "200 OK"
+        docker-compose -f docker-compose.yml run fossbilling php artisan test
+        docker-compose -f docker-compose.yml run wordpress curl -s --head http://192.168.122.79:9500 | grep "200 OK"
 
     - name: Tear down services
-      run: docker-compose -f ~/BillingSync/docker-compose.yml down
+      run: docker-compose -f docker-compose.yml down
 
