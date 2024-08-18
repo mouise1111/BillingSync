@@ -98,6 +98,13 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
+    - name: Set up SSH for deployment
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.PRIVATE_KEY_SSH_HERKANSING }}" > ~/.ssh/id_ed25519
+        chmod 600 ~/.ssh/id_ed25519
+        ssh-keyscan -t rsa ${{ secrets.IP_HERKANSING_SERVER }} >> ~/.ssh/known_hosts
+
     - name: Deploy to Server
       run: |
         scp -r ./* ${{ secrets.DEPLOYMENT_USER }}@${{ secrets.IP_HERKANSING_SERVER }}:${{ secrets.DEPLOYMENT_PATH }}
