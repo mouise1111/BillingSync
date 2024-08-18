@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Management</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <h1>Product Management</h1>
+        <form id="product-form" hx-post="/wp-json/productmanager/v1/products" hx-swap="afterend:prepend" hx-target="#product-list" hx-ext="json-enc">
+            <input type="hidden" id="product_id">
+            <input type="text" id="title" name="title" placeholder="Product Title" required>
+            <input type="text" id="type" name="type" placeholder="Product Type" required>
+            <button type="submit">Save Product</button>
+        </form>
+        <ul id="product-list" hx-get="/wp-json/productmanager/v1/products" hx-trigger="load, htmx:afterRequest from:#product-form">
+            <!-- Products will be listed here -->
+        </ul>
+    </div>
+    <script src="https://unpkg.com/htmx.org"></script>
+    <script src="https://unpkg.com/htmx.org/dist/ext/json-enc.js"></script>
+    <script>
+        document.addEventListener('htmx:afterOnLoad', function(event) {
+            const productList = document.getElementById('product-list');
+            const responseText = productList.innerHTML;
+            
+            // Parse the JSON response
+            try {
+                const products = JSON.parse(responseText);
+
+                // Clear the existing list items
+                productList.innerHTML = '';
+
+                // Create new list items from the parsed JSON
+                products.forEach(product => {
+                    const li = document.createElement('li');
+                    li.textContent = `Title: ${product.title}, Type: ${product.type}`;
+                    productList.appendChild(li);
+                });
+            } catch (error) {
+                console.error('Failed to parse JSON:', error);
+            }
+        });
+    </script>
+</body>
+</html>
+

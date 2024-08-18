@@ -13,10 +13,9 @@ RUN apt-get update && apt-get install -y \
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
     && rm -rf /tmp/composer-setup.php
 
-WORKDIR /Billing
+WORKDIR /BillingSync
 
-RUN mkdir -p /Billing/logs && chmod -R 777 /Billing/logs
-COPY . /Billing
+COPY . /BillingSync
 
 RUN composer require php-amqplib/php-amqplib
 RUN composer install

@@ -5,51 +5,67 @@
  * Version: 1.0
  * Author: Mouise Bashir
  */
-require_once 'RabbitMQPublisher.php';
+require_once 'RabbitMQPublisherForClients.php';
 require_once __DIR__ . '/Models/Client.php';
 
+// Enqueue frontend styles and scripts
+function enqueue_client_management_scripts() {
+    wp_enqueue_style('client-management-styles', plugins_url('frontend/styles.css', __FILE__));
+    wp_enqueue_script('client-management-scripts', plugins_url('frontend/app.js', __FILE__), array('jquery'), null, true);
+}
+add_action('wp_enqueue_scripts', 'enqueue_client_management_scripts');
+
+// Register shortcode for embedding the frontend
+function client_management_shortcode() {
+    ob_start();
+    include plugin_dir_path(__FILE__) . 'frontend/index.html';
+    return ob_get_clean();
+}
+add_shortcode('client_management', 'client_management_shortcode');
+
+// Api endpoints
 add_action('rest_api_init', function () {
   // Endpoints for handling clients in general
-  register_rest_route('myplugin/v1', '/clients', [
+  register_rest_route('clientmanager/v1', '/clients', [
     'methods' => 'GET',
     'callback' => 'get_clients',
   ]);
-  register_rest_route('myplugin/v1', '/clients/(?P<id>\d+)', [
+  register_rest_route('clientmanager/v1', '/clients/(?P<id>\d+)', [
     'methods' => 'PUT',
     'callback' => 'update_client',
   ]);
-  register_rest_route('myplugin/v1', '/clients/(?P<id>\d+)', [
+  register_rest_route('clientmanager/v1', '/clients/(?P<id>\d+)', [
     'methods' => 'DELETE',
     'callback' => 'delete_client',
   ]);
-   register_rest_route('myplugin/v1', '/clients/(?P<id>\d+)', [
+   register_rest_route('clientmanager/v1', '/clients/(?P<id>\d+)', [
     'methods' => 'GET',
     'callback' => 'get_client',
    ]);
 
-  register_rest_route('myplugin/v1', '/clients', [
+  register_rest_route('clientmanager/v1', '/clients', [
     'methods' => 'POST',
     'callback' => 'create_client',
   ]);
-   register_rest_route('myplugin/v1', '/clients/', [
+   register_rest_route('clientmanager/v1', '/clients/', [
     'methods' => 'PUT',
     'callback' => 'update_client',
   ]);
-   register_rest_route('myplugin/v1', '/clients/', [
+   register_rest_route('clientmanager/v1', '/clients/', [
     'methods' => 'DELETE',
     'callback' => 'delete_client_by_custom_1',
   ]);
 
 // Endpoints specifically for FOSSBilling to WordPress integration
-  register_rest_route('myplugin/v1', '/clients/from_fossbilling', [
+  register_rest_route('clientmanager/v1', '/clients/from_fossbilling', [
     'methods' => 'POST',
     'callback' => 'create_client_from_fossbilling',
   ]);
-   register_rest_route('myplugin/v1', '/clients/from_fossbilling/', [
+   register_rest_route('clientmanager/v1', '/clients/from_fossbilling/', [
     'methods' => 'PUT',
     'callback' => 'update_client_from_fossbilling_using_custom_1',
   ]);
-  register_rest_route('myplugin/v1', '/clients/from_fossbilling/', [
+  register_rest_route('clientmanager/v1', '/clients/from_fossbilling/', [
     'methods' => 'DELETE',
     'callback' => 'delete_client_from_fossbilling_using_custom_1',
   ]);
@@ -184,7 +200,7 @@ function create_client(WP_REST_Request $request) {
 
   $client->setId($wpdb->insert_id);
   // Send client data to RabbitMQ
-  $publisher = new RabbitMQPublisher();
+  $publisher = new RabbitMQPublisherForClients();
   $publisher->publish(json_encode([
     'method' => "create",
     'id' => $client->getId(),
@@ -224,7 +240,7 @@ function update_client(WP_REST_Request $request) {
     'birthday' => $client->getDateOfBirth(),
   ], ['id' => $client_data->id]);
 
-  $publisher = new RabbitMQPublisher();
+  $publisher = new RabbitMQPublisherForClients();
   $publisher->publish(json_encode([
     'method' => "update",
     'origin' => "wordpress",
@@ -268,7 +284,7 @@ function delete_client(WP_REST_Request $request) {
 
   $wpdb->delete($table_name, ['id' => $client_data->id]);
 
-  $publisher = new RabbitMQPublisher();
+  $publisher = new RabbitMQPublisherForClients();
   $publisher->publish(json_encode([
     'method' => "delete",
     'custom_1' => $client->getCustom1(),
@@ -302,7 +318,7 @@ function delete_client_by_custom_1(WP_REST_Request $request) {
   $wpdb->delete($table_name, ['id' => $client_data->id]);
 
   // Publish the deletion event to RabbitMQ
-  $publisher = new RabbitMQPublisher();
+  $publisher = new RabbitMQPublisherForClients();
   $publisher->publish(json_encode([
     'method' => "delete",
     'custom_1' => $custom_1,

@@ -21,7 +21,7 @@ function create_wordpress_client($data){
     ]);
     echo $payload;
     // Initialize cURL session
-    $ch = curl_init('http://192.168.122.79:9500/wp-json/myplugin/v1/clients/from_fossbilling');
+    $ch = curl_init('http://192.168.122.79:9500/wp-json/clientmanager/v1/clients/from_fossbilling');
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
@@ -66,7 +66,7 @@ function update_wordpress_client($data){
     echo $payload;
 
     // Initialize cURL session
-    $ch = curl_init('http://192.168.122.79:9500/wp-json/myplugin/v1/clients/from_fossbilling');
+    $ch = curl_init('http://192.168.122.79:9500/wp-json/clientmanager/v1/clients/from_fossbilling');
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
     curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
@@ -108,7 +108,7 @@ function delete_wordpress_client($data){
         echo $payload . "\n";
         
         // Initialize cURL session
-        $ch = curl_init('http://192.168.122.79:9500/wp-json/myplugin/v1/clients/from_fossbilling');
+        $ch = curl_init('http://192.168.122.79:9500/wp-json/clientmanager/v1/clients/from_fossbilling');
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
         curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);

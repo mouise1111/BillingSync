@@ -24,7 +24,7 @@ class Admin extends \Api_Abstract
   /**
    * Send data to RabbitMQ
    *
-   * @param array $data - Client data
+   * @param array $data - Product data
    */
   private function sendToRabbitMQ($data)
   {
@@ -33,7 +33,7 @@ class Admin extends \Api_Abstract
     $channel->queue_declare('products_fossbilling_to_wordpress_queue', false, false, false, false);
 
     $msg = new AMQPMessage(json_encode($data));
-    $channel->basic_publish($msg, '', 'fossbilling_to_wordpress_queue');
+    $channel->basic_publish($msg, '', 'products_fossbilling_to_wordpress_queue');
 
     $channel->close();
     $connection->close();
@@ -127,8 +127,10 @@ class Admin extends \Api_Abstract
 
     $categoryId = $data['product_category_id'] ?? null;
     
-    $this->sendToRabbitMQ($data);
-
+    if ($data['origin'] !== "wordpress") {
+      $data['origin'] = "fossbilling";
+      $this->sendToRabbitMQ($data);
+    }
     return (int) $service->createProduct($data['title'], $data['type'], $categoryId);
   }
 

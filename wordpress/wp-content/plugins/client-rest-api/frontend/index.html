@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Management</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <h1>Client Management</h1>
+        <form id="client-form">
+            <input type="hidden" id="client_id">
+            <input id="custom_1" disabled>
+            <input type="text" id="name" placeholder="Name" required>
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="date" id="birthday" placeholder="Birthday" required>
+            <button type="submit">Save Client</button>
+        </form>
+        <ul id="client-list"></ul>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
+

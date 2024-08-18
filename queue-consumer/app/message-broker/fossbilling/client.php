@@ -1,6 +1,4 @@
 <?php
-//FossBilling API Key
-define('FOSS_PASS', "admin:6qTnJGqni9GdlK5VXoHyn3lnswqevDK5");
 /**
  * FOSSBilling API FUNCTIONS
  **/

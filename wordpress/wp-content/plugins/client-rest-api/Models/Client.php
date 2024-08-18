@@ -1,6 +1,4 @@
 <?php
-use DateTime;
-
 class Client {
   private int $id;
   private string $name;

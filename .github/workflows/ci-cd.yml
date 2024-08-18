@@ -1,0 +1,92 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.2
+        ports:
+          - 3306:3306
+        env:
+          MYSQL_DATABASE: fossbilling
+          MYSQL_USER: fossbilling
+          MYSQL_PASSWORD: fossbilling
+          MYSQL_RANDOM_ROOT_PASSWORD: '1'
+        options: >-
+          --health-cmd "mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+      wordpress_db:
+        image: mysql:8.2
+        ports:
+          - 3307:3306
+        env:
+          MYSQL_DATABASE: mouise
+          MYSQL_USER: mouise
+          MYSQL_PASSWORD: mouise
+          MYSQL_RANDOM_ROOT_PASSWORD: '1'
+        options: >-
+          --health-cmd "mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+      rabbitmq:
+        image: "rabbitmq:3-management"
+        ports:
+          - 15672:15672
+          - 5672:5672
+        options: >-
+          --health-cmd "rabbitmq-diagnostics -q ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up SSH
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.PRIVATE_KEY_SSH_HERKANSING }}" > ~/.ssh/id_ed25519
+        chmod 600 ~/.ssh/id_ed25519
+        ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Cache Docker layers
+      uses: actions/cache@v2
+      with:
+        path: /tmp/.buildx-cache
+        key: ${{ runner.os }}-buildx-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-buildx-
+
+    - name: Build and push Docker images
+      run: |
+        docker-compose -f docker-compose.yml build
+        docker-compose -f docker-compose.yml up -d
+        docker ps -a
+
+    - name: Run Tests
+      run: |
+        docker-compose -f docker-compose.yml run fossbilling php artisan test
+        docker-compose -f docker-compose.yml run wordpress curl -s --head http://192.168.122.79:9500 | grep "200 OK"
+
+    - name: Tear down services
+      run: docker-compose -f docker-compose.yml down
+

@@ -16,12 +16,14 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Copy the custom plugin directory to the WordPress plugins directory
 COPY ./wp-content/plugins/client-rest-api /var/www/html/wp-content/plugins/client-rest-api
 COPY ./wp-content/plugins/client-table /var/www/html/wp-content/plugins/client-table
-# Change working directory to the plugin
-#WORKDIR /var/www/html/wp-content/plugins/client-rest-api
+COPY ./wp-content/plugins/product-rest-api /var/www/html/wp-content/plugins/product-rest-api
+COPY ./wp-content/plugins/product-table /var/www/html/wp-content/plugins/product-table
+
+COPY ./wp-content/plugins/composer.json /var/www/html/wp-content/plugins/
 
 # Install Composer dependencies for the plugin
 RUN composer require php-amqplib/php-amqplib # from EersteZit
-RUN composer install --working-dir=/var/www/html/wp-content/plugins/client-rest-api/
+RUN composer install --working-dir=/var/www/html/wp-content/plugins/
 
 # Ensure correct permissions
 RUN chown -R www-data:www-data /var/www/html
