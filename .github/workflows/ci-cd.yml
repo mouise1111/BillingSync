@@ -92,6 +92,9 @@ jobs:
       run: docker-compose -f docker-compose.yml down
 
   deploy:
+    - name: Install SSH client
+      run: sudo apt-get install -y openssh-client 
+
     runs-on: ubuntu-latest
     needs: build
     steps:
@@ -100,5 +103,5 @@ jobs:
 
     - name: Set up SSH for deployment
       run: |
-        scp -v /home/mouise/BillingSync/docker-compose.yml mouise@192.168.122.79:/home/mouise/BillingSync
-        ssh mouise@192.168.122.79 "cd /home/mouise/BillingSync && docker-compose down && docker-compose up -d"
+        scp -v -o StrictHostKeyChecking=no /home/mouise/BillingSync/docker-compose.yml mouise@192.168.122.79:/home/mouise/BillingSync
+        ssh -o StrictHostKeyChecking=no mouise@192.168.122.79 "cd /home/mouise/BillingSync && docker-compose down && docker-compose up -d"
