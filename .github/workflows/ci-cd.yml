@@ -101,7 +101,7 @@ jobs:
     - name: Set up SSH for deployment
       run: |
         mkdir -p ~/.ssh
-        echo "${{ secrets.DEPLOYMENT_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+        echo "${{ secrets.PRIVATE_KEY_SSH_HERKANSING }}" > ~/.ssh/id_ed25519
         chmod 600 ~/.ssh/id_ed25519
         ssh-keyscan -t rsa ${{ secrets.DEPLOYMENT_SERVER }} >> ~/.ssh/known_hosts
 
