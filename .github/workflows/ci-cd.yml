@@ -103,10 +103,9 @@ jobs:
         mkdir -p ~/.ssh
         echo "${{ secrets.PRIVATE_KEY_SSH_HERKANSING }}" > ~/.ssh/id_ed25519
         chmod 600 ~/.ssh/id_ed25519
-        ssh-keyscan "${{ secrets.IP_HERKANSING_SERVER}}" >> ~/.ssh/known_hosts
-        scp -v /home/mouise/BillingSync/docker-compose.yml mouise@192.168.122.79:/home/mouise/BillingSync
-        ssh mouise@192.168.122.79 "cd /home/mouise/BillingSync && docker-compose down && docker-compose up -d"
-
+        ssh-keyscan "${{ secrets.IP_HERKANSING_SERVER }}" >> ~/.ssh/known_hosts
+        scp -v /home/mouise/BillingSync/docker-compose.yml mouise@${{ secrets.IP_HERKANSING_SERVER }}:/home/mouise/BillingSync
+        ssh mouise@${{ secrets.IP_HERKANSING_SERVER }} "cd /home/mouise/BillingSync && docker-compose down && docker-compose up -d" 
         #        mkdir -p ~/.ssh
         #echo "${{ secrets.PRIVATE_KEY_SSH_HERKANSING}}" > ~/.ssh/id_ed25519
         #chmod 600 ~/.ssh/id_ed25519
