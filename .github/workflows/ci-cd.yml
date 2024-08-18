@@ -100,5 +100,5 @@ jobs:
 
     - name: Set up SSH for deployment
       run: |
-      scp -v /home/mouise/BillingSync/docker-compose.yml mouise@${{ secrets.IP_HERKANSING_SERVER }}:/home/mouise/BillingSync
-      ssh mouise@${{ secrets.IP_HERKANSING_SERVER }} "cd /home/mouise/BillingSync && docker-compose down && docker-compose up -d"
+        scp -v /home/mouise/BillingSync/docker-compose.yml mouise@192.168.122.79:/home/mouise/BillingSync
+        ssh mouise@192.168.122.79 "cd /home/mouise/BillingSync && docker-compose down && docker-compose up -d"
