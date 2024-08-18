@@ -98,12 +98,8 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Set up SSH for deployment
+    - name: Deploy to Server
       run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.PRIVATE_KEY_SSH_HERKANSING }}" > ~/.ssh/id_ed25519
-        chmod 600 ~/.ssh/id_ed25519
-        ssh-keyscan ${{ secrets.IP_HERKANSING_SERVER }} >> ~/.ssh/known_hosts
-        scp -v /home/mouise/BillingSync/docker-compose.yml mouise@${{ secrets.IP_HERKANSING_SERVER }}:/home/mouise/BillingSync
-        ssh mouise@${{ secrets.IP_HERKANSING_SERVER }} "cd /home/mouise/BillingSync && docker-compose down && docker-compose up -d"
+        scp -r ./* ${{ secrets.DEPLOYMENT_USER }}@${{ secrets.IP_HERKANSING_SERVER }}:${{ secrets.DEPLOYMENT_PATH }}
+        ssh ${{ secrets.DEPLOYMENT_USER }}@${{ secrets.IP_HERKANSING_SERVER }} "cd ${{ secrets.DEPLOYMENT_PATH }} && docker-compose down && docker-compose up -d"
 
