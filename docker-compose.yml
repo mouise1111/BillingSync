@@ -42,6 +42,8 @@ services:
   wordpress_db:
     image: mysql:8.2
     restart: always
+    ports:
+      - "3309:3306"
     environment:
       MYSQL_DATABASE: mouise
       MYSQL_USER: mouise
@@ -55,7 +57,7 @@ services:
     image: "rabbitmq:3-management"
     ports:
       - "15673:15672" # RabbitMQ management console
-      - "5672:5672"   # RabbitMQ message broker port 
+      - "5673:5672"   # RabbitMQ message broker port 
 
   queue-consumer:
     build: ./queue-consumer
