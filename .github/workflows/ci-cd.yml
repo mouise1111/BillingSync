@@ -103,7 +103,7 @@ jobs:
         mkdir -p ~/.ssh
         echo "${{ secrets.PRIVATE_KEY_SSH_HERKANSING }}" > ~/.ssh/id_ed25519
         chmod 600 ~/.ssh/id_ed25519
-        ssh-keyscan -t rsa ${{ secrets.IP_HERKANSING_SERVER }} >> ~/.ssh/known_hosts
+        ssh-keyscan ${{ secrets.IP_HERKANSING_SERVER }} >> ~/.ssh/known_hosts
 
     - name: Deploy to Server
       run: |
