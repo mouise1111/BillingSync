@@ -89,9 +89,6 @@ jobs:
     runs-on: self-hosted
     needs: build
     steps:
-      - name: Install SSH client
-        run: sudo apt-get install -y openssh-client
-
       - name: Set up SSH for deployment
         run: |
           scp -v -o StrictHostKeyChecking=no /home/mouise/BillingSync/docker-compose.yml mouise@192.168.122.79:/home/mouise/BillingSync
