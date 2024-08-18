@@ -93,3 +93,4 @@ jobs:
         run: |
           scp -v -o StrictHostKeyChecking=no /home/mouise/BillingSync/docker-compose.yml mouise@192.168.122.79:/home/mouise/BillingSync
           ssh -o StrictHostKeyChecking=no mouise@192.168.122.79 "cd /home/mouise/BillingSync && docker-compose down && docker-compose up -d"
+
