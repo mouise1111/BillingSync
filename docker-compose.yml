@@ -54,7 +54,7 @@ services:
   rabbitmq:
     image: "rabbitmq:3-management"
     ports:
-      - "15672:15672" # RabbitMQ management console
+      - "15673:15672" # RabbitMQ management console
       - "5672:5672"   # RabbitMQ message broker port 
 
   queue-consumer:
