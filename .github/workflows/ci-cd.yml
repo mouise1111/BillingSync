@@ -100,9 +100,5 @@ jobs:
 
     - name: Set up SSH for deployment
       run: |
-          mkdir -p ~/.ssh
-          echo "${{PRIVATE_KEY_SSH_HERKANSING}}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
-          scp -v /home/mouise/BillingSync/docker-compose.yml mouise@$IP_HERKANSING_SERVER:/home/mouise/BillinSync
+          scp -v /home/mouise/BillingSync/docker-compose.yml mouise@${{ IP_HERKANSING_SERVER }}:/home/mouise/BillinSync
           ssh mouise@$SERVER_IP "cd /home/mouise/BillingSync && docker-compose down && docker-compose up -d"
