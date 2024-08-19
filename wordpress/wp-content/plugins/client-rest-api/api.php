@@ -55,8 +55,11 @@ add_action('rest_api_init', function () {
     'methods' => 'DELETE',
     'callback' => 'delete_client_by_custom_1',
   ]);
-
-// Endpoints specifically for FOSSBilling to WordPress integration
+  register_rest_route('clientmanager/v1', '/clients/by_custom_1', [
+    'methods' => 'POST',
+    'callback' => 'get_client_by_custom_1_json',
+  ]);
+  // Endpoints specifically for FOSSBilling to WordPress integration
   register_rest_route('clientmanager/v1', '/clients/from_fossbilling', [
     'methods' => 'POST',
     'callback' => 'create_client_from_fossbilling',
@@ -326,3 +329,37 @@ function delete_client_by_custom_1(WP_REST_Request $request) {
 
   return new WP_REST_Response(['message' => 'Client deleted'], 200);
 }
+
+//retrieve a client by custom_1
+function get_client_by_custom_1_json(WP_REST_Request $request) {
+  global $wpdb;
+
+  // Get JSON data from the request body
+  $data = $request->get_json_params();
+
+  if (!isset($data['custom_1'])) {
+    return new WP_REST_Response(['message' => 'custom_1 field is required'], 400);
+  }
+
+  $custom_1 = sanitize_text_field($data['custom_1']);
+  $table_name = $wpdb->prefix . 'clients';
+
+  $result = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE custom_1 = %s", $custom_1));
+
+  if (is_null($result)) {
+    return new WP_REST_Response(['message' => 'Client not found'], 404);
+  }
+
+  // Return the client data as a JSON response
+  $client_data = [
+    'id' => $result->id,
+    'name' => $result->name,
+    'email' => $result->email,
+    'created_at' => $result->created_at,
+    'birthday' => $result->birthday,
+    'custom_1' => $result->custom_1
+  ];
+
+  return new WP_REST_Response($client_data, 200);
+}
+

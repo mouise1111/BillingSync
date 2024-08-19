@@ -83,7 +83,14 @@ document.addEventListener('DOMContentLoaded', function () {
         custom1Field.value = client.custom_1;
         nameField.value = client.name;
         emailField.value = client.email;
-        birthdayField.value = client.birthday;
+      // Ensure the date is in the format YYYY-MM-DD
+      if (client.birthday) {
+        const date = new Date(client.birthday);
+        const formattedDate = date.toISOString().split('T')[0]; // Extracts YYYY-MM-DD
+        birthdayField.value = formattedDate;
+      } else {
+        birthdayField.value = ''; // Clear the field if no date is present
+      }
     }
 
     fetchClients();

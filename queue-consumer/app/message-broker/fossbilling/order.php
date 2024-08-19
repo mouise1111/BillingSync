@@ -1,24 +1,24 @@
 <?php
 
 /**
- * FOSSBilling API FUNCTIONS for products
+ * FOSSBilling API FUNCTIONS for orders
  **/
 
  /**
- * Creates a product in Fossbilling
+ * Creates an order in Fossbilling
+ * needs a client_id or custom_1 and a product_id
  * @param array $data
  **/
-function create_fossbilling_product($data){
+function create_fossbilling_order($data){
   // Prepare the payload for Fossbilling
   $payload = json_encode([
-    'title' => $data['title'],
-    'type' => $data['type'],
-    'custom_1' => $data['custom_1'],
+    'client_custom_1' => $data['client_custom_1'], // substituting the client_id 
+    'product_custom_1' => $data['product_custom_1'],
     'origin' => $data['origin']
   ]);
   echo $payload;
   // Initialize cURL session
-  $ch = curl_init('http://192.168.122.79/api/admin/product/prepare');
+  $ch = curl_init('http://192.168.122.79/api/admin/order/create');
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
   curl_setopt($ch, CURLOPT_POST, true);
   curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);

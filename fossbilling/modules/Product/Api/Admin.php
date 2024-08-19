@@ -17,7 +17,7 @@ namespace Box\Mod\Product\Api;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
 
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 class Admin extends \Api_Abstract
 {
@@ -129,9 +129,13 @@ class Admin extends \Api_Abstract
     
     if ($data['origin'] !== "wordpress") {
       $data['origin'] = "fossbilling";
+      $data['custom_1'] = uniqid('fp_');
+      $custom_1 = $data['custom_1'];
       $this->sendToRabbitMQ($data);
+    } else if ($data['origin'] === "wordpress"){
+      $custom_1 = $data['custom_1'];
     }
-    return (int) $service->createProduct($data['title'], $data['type'], $categoryId);
+    return (int) $service->createProduct($data['title'], $data['type'], $categoryId, $custom_1);
   }
 
   /**

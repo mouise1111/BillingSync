@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Management</title>
+  </head>
+  <body>
+    <h1>Orders</h1>
+
+    <div>
+      <h2>Create New Order</h2>
+      <form id="order-form">
+        <label for="client-select">Select Client:</label>
+        <select id="client-select" name="client_custom_1">
+          <!-- Options will be loaded dynamically -->
+        </select>
+        <br><br>
+
+        <label for="product-select">Select Product:</label>
+        <select id="product-select" name="product_custom_1">
+          <!-- Options will be loaded dynamically -->
+        </select>
+        <br><br>
+
+        <button type="submit">Create Order</button>
+      </form>
+    </div>
+
+    <div id="order-list">
+      <!-- Orders will be dynamically loaded here -->
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        // Fetch clients and populate the client dropdown
+        fetch('http://192.168.122.79:9500/wp-json/clientmanager/v1/clients')
+          .then(response => response.json())
+          .then(clients => {
+            const clientSelect = document.getElementById("client-select");
+            clients.forEach(client => {
+              const option = document.createElement("option");
+              option.value = client.custom_1;
+              option.textContent = client.name;
+              clientSelect.appendChild(option);
+            });
+          });
+
+        // Fetch products and populate the product dropdown
+        fetch('http://192.168.122.79:9500/wp-json/productmanager/v1/products')
+          .then(response => response.json())
+          .then(products => {
+            const productSelect = document.getElementById("product-select");
+            products.forEach(product => {
+              const option = document.createElement("option");
+              option.value = product.custom_1;
+              option.textContent = product.title;
+              productSelect.appendChild(option);
+            });
+          });
+
+        // Handle form submission
+        document.getElementById("order-form").addEventListener("submit", function(event) {
+          event.preventDefault();
+
+          const clientCustom1 = document.getElementById("client-select").value;
+          const productCustom1 = document.getElementById("product-select").value;
+
+          fetch('http://192.168.122.79:9500/wp-json/ordermanager/v1/orders', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              client_custom_1: clientCustom1,
+              product_custom_1: productCustom1,
+              origin: 'wordpress'
+            })
+          })
+            .then(response => response.json())
+            .then(order => {
+              alert('Order created successfully!');
+              // Optionally, refresh the order list or do something else after order creation
+            })
+            .catch(error => console.error('Error creating order:', error));
+        });
+
+        // Fetch and display orders
+        fetch('http://192.168.122.79:9500/wp-json/ordermanager/v1/orders')
+          .then(response => response.json())
+          .then(orders => {
+            const orderList = document.getElementById("order-list");
+            orderList.innerHTML = ''; // Clear the list
+
+            orders.forEach(order => {
+              const listItem = document.createElement('li');
+              listItem.innerHTML = `Order ID: ${order.id} <br> Client: <span id="client-${order.id}">Loading client...</span> <br> Product: <span id="product-${order.id}">Loading product...</span><br>`;
+              orderList.appendChild(listItem);
+
+              // Fetch client data
+              fetch('http://192.168.122.79:9500/wp-json/clientmanager/v1/clients/by_custom_1', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ custom_1: order.client_custom_1 })
+              })
+                .then(response => response.json())
+                .then(client => {
+                  document.getElementById(`client-${order.id}`).innerText = `Name: ${client.name}`;
+                });
+
+              // Fetch product data
+              fetch('http://192.168.122.79:9500/wp-json/productmanager/v1/products/by_custom_1', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ custom_1: order.product_custom_1 })
+              })
+                .then(response => response.json())
+                .then(product => {
+                  document.getElementById(`product-${order.id}`).innerText = `Title: ${product.title}`;
+                });
+            });
+          })
+          .catch(error => console.error('Error fetching orders:', error));
+      });
+    </script>
+  </body>
+</html>
+

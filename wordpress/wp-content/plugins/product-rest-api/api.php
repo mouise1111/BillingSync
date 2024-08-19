@@ -30,6 +30,10 @@ add_action('rest_api_init', function () {
     'methods' => 'POST',
     'callback' => 'create_product',
   ]);
+  register_rest_route('productmanager/v1', '/products/by_custom_1', [
+    'methods' => 'POST',
+    'callback' => 'get_product_by_custom_1_json',
+  ]);
 });
 
 
@@ -77,13 +81,16 @@ function create_product(WP_REST_Request $request) {
   $type = sanitize_text_field($data['type']);
   //$productCategoryId = sanitize_text_field($data['productCategoryId']);
   //$origin = $data['origin'] ?? null;
+  
+  $custom_1 = $data['custom_1'] ?? null;
 
-  $product = new Product($title, $type);
+  $product = new Product($title, $type, null ,$custom_1);
 
   $table_name = $wpdb->prefix . 'products';
   $wpdb->insert($table_name, [
     'title' => $product->getTitle(),
     'type' => $product->getType(),
+    'custom_1' => $product->getCustom1()
   ]);
 
   $product->setId($wpdb->insert_id);
@@ -95,8 +102,40 @@ function create_product(WP_REST_Request $request) {
     'origin' => "wordpress",
     'title' => $product->getTitle(),
     'type' => $product->getType(),
+    'custom_1' => $product->getCustom1(),
   ]));
   }
   return new WP_REST_Response($product, 201);
+}
+
+// retrieve a product by custom_1
+function get_product_by_custom_1_json(WP_REST_Request $request) {
+    global $wpdb;
+
+    // Get JSON data from the request body
+    $data = $request->get_json_params();
+    
+    if (!isset($data['custom_1'])) {
+        return new WP_REST_Response(['message' => 'custom_1 field is required'], 400);
+    }
+
+    $custom_1 = sanitize_text_field($data['custom_1']);
+    $table_name = $wpdb->prefix . 'products';
+    
+    $result = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE custom_1 = %s", $custom_1));
+    
+    if (is_null($result)) {
+        return new WP_REST_Response(['message' => 'Product not found'], 404);
+    }
+
+    // Return the product data as a JSON response
+    $product_data = [
+        'id' => $result->id,
+        'title' => $result->title,
+        'type' => $result->type,
+        'custom_1' => $result->custom_1
+    ];
+
+    return new WP_REST_Response($product_data, 200);
 }
 

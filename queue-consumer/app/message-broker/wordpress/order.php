@@ -10,20 +10,19 @@
  * Optional is the category (id)
  * @param array $data
  */
-function create_wordpress_product($data){
-  echo "We have entered the create wordpress product function \n";
+function create_wordpress_order($data){
+  echo "We have entered the create wordpress order function \n";
   // we are checking if the data is Incoming from Fossbilling, along with other fields
-  if (isset($data['title']) && isset($data['type']) && isset($data['origin']) && $data['origin'] === "fossbilling") { 
+  if (isset($data['client']['custom_1']) && isset($data['product']['custom_1']) && $data['origin'] === "fossbilling") { 
     // Prepare the payload for WordPress
     $payload = json_encode([
-      'title' => $data['title'],
-      'type' => $data['type'],
-      'custom_1' => $data['custom_1'],
+      'client_custom_1' => $data['client']['custom_1'],
+      'product_custom_1' => $data['product']['custom_1'],
       'origin' => $data['origin']
     ]);
     echo $payload;
     // Initialize cURL session
-    $ch = curl_init('http://192.168.122.79:9500/wp-json/productmanager/v1/products');
+    $ch = curl_init('http://192.168.122.79:9500/wp-json/ordermanager/v1/orders/');
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
