@@ -85,16 +85,16 @@ jobs:
     - name: Tear down services
       run: docker-compose -f docker-compose.yml down
 
-  deploy:
-    runs-on: self-hosted
-    needs: build
-    steps:
-      - name: Set up SSH for deployment
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.PRIVATE_KEY_SSH_HERKANSING }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -t rsa 192.168.122.79 >> ~/.ssh/known_hosts
-          scp -v -o StrictHostKeyChecking=no /home/mouise/BillingSync/docker-compose.yml mouise@192.168.122.79:/home/mouise/BillingSync
-          ssh -o StrictHostKeyChecking=no mouise@192.168.122.79 "cd /home/mouise/BillingSync && docker-compose down && docker-compose up -d"
+#  deploy:
+#    runs-on: self-hosted
+#    needs: build
+#    steps:
+#      - name: Set up SSH for deployment
+#        run: |
+#          mkdir -p ~/.ssh
+#          echo "${{ secrets.PRIVATE_KEY_SSH_HERKANSING }}" > ~/.ssh/id_ed25519
+#          chmod 600 ~/.ssh/id_ed25519
+#          ssh-keyscan -t rsa 192.168.122.79 >> ~/.ssh/known_hosts
+#          scp -v -o StrictHostKeyChecking=no /home/mouise/BillingSync/docker-compose.yml mouise@192.168.122.79:/home/mouise/BillingSync
+#          ssh -o StrictHostKeyChecking=no mouise@192.168.122.79 "cd /home/mouise/BillingSync && docker-compose down && docker-compose up -d"
 
