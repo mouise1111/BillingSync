@@ -155,7 +155,7 @@ Once the Docker containers are up and running, you can interact with the service
 - **RabbitMQ Queue Issues**: Ensure that the API-KEY is correct.
 
 ## Resources used
-https://github.com/Integration-Project-Team-1/Billing/blob/main/Dockerfile
-https://github.com/Integration-Project-Team-1/Billing/blob/main/app/index.php
-https://github.com/Integration-Project-Team-1/Billing/blob/main/app/message-broker/consumers/queue_consumer.php
-https://github.com/Integration-Project-Team-1/Billing/blob/main/docker-compose.yml
+- https://github.com/Integration-Project-Team-1/Billing/blob/main/Dockerfile
+- https://github.com/Integration-Project-Team-1/Billing/blob/main/app/index.php
+- https://github.com/Integration-Project-Team-1/Billing/blob/main/app/message-broker/consumers/queue_consumer.php
+- https://github.com/Integration-Project-Team-1/Billing/blob/main/docker-compose.yml
