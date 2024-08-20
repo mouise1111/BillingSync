@@ -73,16 +73,18 @@ function create_order(WP_REST_Request $request) {
     return new WP_REST_Response(['message' => 'Invalid input'], 400);
   }
 
-  $client_custom_1 = $data['client_custom_1'] ?? null;
-  $product_custom_1 = $data['product_custom_1'] ?? null;
+  $client_custom_1 = $data['client_custom_1'];
+  $product_custom_1 = $data['product_custom_1'];
+  $price = $data['price'] ?? null;
   
 
-  $order = new Order($client_custom_1, $product_custom_1);
+  $order = new Order($client_custom_1, $product_custom_1, $price);
 
   $table_name = $wpdb->prefix . 'orders';
   $wpdb->insert($table_name, [
     'client_custom_1' => $order->getClientCustom1(),
     'product_custom_1' => $order->getProductCustom1(),
+    'price' => $order->getPrice()
   ]);
 
   $order->setId($wpdb->insert_id);
@@ -94,6 +96,7 @@ function create_order(WP_REST_Request $request) {
     'origin' => "wordpress",
     'client_custom_1' => $order->getClientCustom1(),
     'product_custom_1' => $order->getProductCustom1(),
+    'price' => $order->getPrice(),
   ]));
   }
   return new WP_REST_Response($order, 201);

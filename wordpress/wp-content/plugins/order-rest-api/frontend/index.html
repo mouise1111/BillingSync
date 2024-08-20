@@ -23,6 +23,11 @@
         </select>
         <br><br>
 
+        <!-- New Price Input Field -->
+        <label for="price-input">Price:</label>
+        <input type="number" id="price-input" name="price" step="0.01" min="0" required>
+        <br><br>
+
         <button type="submit">Create Order</button>
       </form>
     </div>
@@ -65,6 +70,7 @@
 
           const clientCustom1 = document.getElementById("client-select").value;
           const productCustom1 = document.getElementById("product-select").value;
+          const price = document.getElementById("price-input").value; // Get the price input value
 
           fetch('http://192.168.122.79:9500/wp-json/ordermanager/v1/orders', {
             method: 'POST',
@@ -74,6 +80,7 @@
             body: JSON.stringify({
               client_custom_1: clientCustom1,
               product_custom_1: productCustom1,
+              price: price, // Include the price in the request body
               origin: 'wordpress'
             })
           })
@@ -94,7 +101,7 @@
 
             orders.forEach(order => {
               const listItem = document.createElement('li');
-              listItem.innerHTML = `Order ID: ${order.id} <br> Client: <span id="client-${order.id}">Loading client...</span> <br> Product: <span id="product-${order.id}">Loading product...</span><br>`;
+              listItem.innerHTML = `Order ID: ${order.id} <br> Client: <span id="client-${order.id}">Loading client...</span> <br> Product: <span id="product-${order.id}">Loading product...</span><br> Price: ${order.price}`;
               orderList.appendChild(listItem);
 
               // Fetch client data

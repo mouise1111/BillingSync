@@ -14,7 +14,8 @@ function create_fossbilling_order($data){
   $payload = json_encode([
     'client_custom_1' => $data['client_custom_1'], // substituting the client_id 
     'product_custom_1' => $data['product_custom_1'],
-    'origin' => $data['origin']
+    'origin' => $data['origin'],
+    'price' => $data['price']
   ]);
   echo $payload;
   // Initialize cURL session

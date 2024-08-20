@@ -22,6 +22,7 @@ function create_orders_db_table() {
         id mediumint(9) NOT NULL AUTO_INCREMENT,
         client_custom_1 tinytext NOT NULL,
         product_custom_1 tinytext NOT NULL,
+        price double(18,2) DEFAULT NULL,
         PRIMARY KEY  (id)
     ) $charset_collate;";
 
